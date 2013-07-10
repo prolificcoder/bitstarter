@@ -21,6 +21,7 @@ References:
    - https://developer.mozilla.org/en-US/docs/JSON#JSON_in_Firefox_2
 */
 
+var util = require('util');
 var fs = require('fs');
 var program = require('commander');
 var cheerio = require('cheerio');
@@ -38,9 +39,9 @@ var assertFileExists = function(infile) {
     return instr;
 };
 var assertUrlExists = function(url) {
-    if(url != 'undefined')
-      return 1;
-    return 0; 
+    if(url.length >1)
+      return url;
+    return false; 
 };
 
 var cheerioHtmlFile = function(htmlfile) {
@@ -61,25 +62,18 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     }
     return out;
 };
-var checkURL = function(url, checksfile) {
-    rest.get(url).on('complete', showOutput(data));
-};
-
-var showOutput = function(data) {
-  console.log(data);
-};
-
-var buildfn = function(csvfile, headers) {
-    var response2console = function(result, response) {
-        if (result instanceof Error) {
-            console.error('Error: ' + util.format(response.message));
-        } else {
-            console.error("Wrote %s", csvfile);
-            fs.writeFileSync(csvfile, result);
-            csv2console(csvfile, headers);
-        }
-    };
-    return response2console;
+var checkUrl = function(url, checksfile) {
+    rest.get(url).on('complete', function(data) {
+      $ = cheerio.load(data);
+      var checks = loadChecks(checksfile).sort();
+      var out = {};
+      for(var ii in checks) {
+          var present = $(checks[ii]).length > 0;
+          out[checks[ii]] = present;
+      }
+      console.log(out);
+      return out;
+    });
 };
 
 var clone = function(fn) {
@@ -94,9 +88,8 @@ if(require.main == module) {
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
         .option('-u, --url <url>', 'Url of index.html', clone(assertUrlExists), URL_DEFAULT)
         .parse(process.argv);
-    
     var checkJson;
-    if (program.url != 'undefined')
+    if (program.url.length == 0)
       checkJson = checkHtmlFile(program.file, program.checks);
     else    
       checkJson = checkUrl(program.url, program.checks);
