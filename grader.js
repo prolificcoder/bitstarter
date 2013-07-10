@@ -93,8 +93,6 @@ if(require.main == module) {
       checkJson = checkHtmlFile(program.file, program.checks);
     else    
       checkJson = checkUrl(program.url, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
 } else {
     exports.checkHtmlFile = checkHtmlFile;
     exports.checkUrl = checkUrl;
