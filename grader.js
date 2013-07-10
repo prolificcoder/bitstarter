@@ -60,7 +60,8 @@ var checkHtmlFile = function(htmlfile, checksfile) {
         var present = $(checks[ii]).length > 0;
         out[checks[ii]] = present;
     }
-    return out;
+    var outJson = JSON.stringify(out, null, 4);
+    console.log(outJson);
 };
 var checkUrl = function(url, checksfile) {
     rest.get(url).on('complete', function(data) {
@@ -86,10 +87,10 @@ if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-        .option('-u, --url <url>', 'Url of index.html', clone(assertUrlExists), URL_DEFAULT)
+        .option('-u, --url <url>', 'Url of index.html')
         .parse(process.argv);
     var checkJson;
-    if (program.url.length == 0)
+    if (typeof program.url == 'undefined')
       checkJson = checkHtmlFile(program.file, program.checks);
     else    
       checkJson = checkUrl(program.url, program.checks);
